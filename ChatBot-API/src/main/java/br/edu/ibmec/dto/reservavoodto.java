@@ -1,17 +1,18 @@
 package br.edu.ibmec.dto;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 public record reservavoodto(
     Long id,
     usuariodto usuario,
-    String nomeVoo,
-    String codigoApiVoo,
+    String companhiaAerea,
     String origem,
     String destino,
-    String dataPartida,
-    String dataRetorno,
-    String precoTotal,
-    String status,
-    String dataCriacao
+    LocalDateTime dataPartida,
+    LocalDateTime dataRetorno,
+    BigDecimal preco,
+    String status
 ) {
     
 }

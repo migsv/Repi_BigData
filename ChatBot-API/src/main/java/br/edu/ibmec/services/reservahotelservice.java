@@ -1,10 +1,13 @@
 package br.edu.ibmec.services;
 import br.edu.ibmec.dto.reservahoteldto;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface reservahotelservice {
-    void criarReservaHotel(reservahoteldto reserva);
-    reservahoteldto obterReservaHotelPorId(Long id);
-    reservahoteldto salvarReservaHotel(reservahoteldto reserva);
-    reservahoteldto atualizarReservaHotel(Long id, reservahoteldto reserva);
-    void deletarReservaHotel(Long id);
+    List<reservahoteldto> obterTodasReservas();
+    Optional<reservahoteldto> obterReservaPorId(Long id);
+    reservahoteldto salvarReserva(reservahoteldto reserva);
+    reservahoteldto atualizarReserva(Long id, reservahoteldto reserva);
+    void deletarReserva(Long id);
 }

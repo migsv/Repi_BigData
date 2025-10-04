@@ -15,6 +15,9 @@ public class ReservaVoo {
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
+
+    @Column
+    private String companhiaAerea;
     
     @Column(nullable = false)
     private String origem;
@@ -23,16 +26,10 @@ public class ReservaVoo {
     private String destino;
     
     @Column(nullable = false)
-    private LocalDateTime dataHoraIda;
+    private LocalDateTime dataPartida;
     
     @Column
-    private LocalDateTime dataHoraVolta;
-    
-    @Column
-    private String companhiaAerea;
-    
-    @Column
-    private String numeroVoo;
+    private LocalDateTime dataRetorno;
     
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal preco;
@@ -41,10 +38,9 @@ public class ReservaVoo {
     @Column(nullable = false)
     private StatusReserva status = StatusReserva.PENDENTE;
     
-    @Column(nullable = false)
-    private LocalDateTime dataCriacao = LocalDateTime.now();
-    
     public enum StatusReserva {
         PENDENTE, CONFIRMADA, CANCELADA
     }
+
+    // Construtores, getters e setters podem ser gerados pelo Lombok (@Data)
 }
