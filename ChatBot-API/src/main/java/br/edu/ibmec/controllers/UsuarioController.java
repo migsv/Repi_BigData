@@ -1,56 +1,52 @@
 package br.edu.ibmec.controllers;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import br.edu.ibmec.dto.usuariodto;
+import br.edu.ibmec.services.usuarioservice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import br.edu.ibmec.models.Usuario;
-import br.edu.ibmec.repository.UsuarioRepository;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/usuarios")
 public class UsuarioController {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final usuarioservice usuarioService;
+
+    public UsuarioController(usuarioservice usuarioService) {
+        this.usuarioService = usuarioService;
+    }
 
     @GetMapping
-    public ResponseEntity<List<Usuario>> getUsuarios() {
-        return ResponseEntity.ok(usuarioRepository.findAll());
+    public List<usuariodto> getAllUsers() {
+        return usuarioService.obterTodosUsuarios();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Usuario> getUsuario(@PathVariable Long id) {
-        Optional<Usuario> usuario = usuarioRepository.findById(id);
-        return usuario.map(ResponseEntity::ok)
-                     .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<usuariodto> getUserById(@PathVariable Long id) {
+        Optional<usuariodto> user = usuarioService.obterUsuarioPorId(id);
+        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Usuario> saveUsuario(@RequestBody Usuario usuario) {
-        Usuario usuarioSalvo = usuarioRepository.save(usuario);
-        return ResponseEntity.ok(usuarioSalvo);
+    public usuariodto createUser(@RequestBody usuariodto userDTO) {
+        return usuarioService.salvarUsuario(userDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Usuario> updateUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
-        if (!usuarioRepository.existsById(id)) {
+    public ResponseEntity<usuariodto> updateUser(@PathVariable Long id, @RequestBody usuariodto userDTO) {
+        try {
+            usuariodto updatedUser = usuarioService.atualizarUsuario(id, userDTO);
+            return ResponseEntity.ok(updatedUser);
+        } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
-        usuario.setId(id);
-        Usuario usuarioAtualizado = usuarioRepository.save(usuario);
-        return ResponseEntity.ok(usuarioAtualizado);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUsuario(@PathVariable Long id) {
-        if (!usuarioRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        usuarioRepository.deleteById(id);
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        usuarioService.deletarUsuario(id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,12 +1,15 @@
 package br.edu.ibmec.services;
 import br.edu.ibmec.dto.historicoconversadto;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface historicoconversaservices {
 
-    void criarHistoricoConversa(historicoconversadto historico);
-    historicoconversadto obterHistoricoConversaPorId(Long id);
-    historicoconversadto salvarHistoricoConversa(historicoconversadto historico);
-    historicoconversadto atualizarHistoricoConversa(Long id, historicoconversadto historico);
-    void deletarHistoricoConversa(Long id);
+    List<historicoconversadto> obterTodasConversas();
+    Optional<historicoconversadto> obterConversaPorId(Long id);
+    historicoconversadto salvarConversa(historicoconversadto conversa);
+    historicoconversadto atualizarConversa(Long id, historicoconversadto conversa);
+    void deletarConversa(Long id);
 
 }
