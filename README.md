@@ -3,44 +3,77 @@ Repositório do projeto da aula de BigData | Ibmec
 
 ***
 
-# Chatbot Inteligente de Reservas de Viagens (Hotéis e Voos)
+# Chatbot de Reservas (Bot + API)
 
-## 1. Visão Geral do Projeto
+## 1. Visão Geral
 
-Este projeto consiste no desenvolvimento de um **chatbot inteligente** cujo objetivo principal é permitir que os usuários pesquisem e **realizem reservas de hotéis e passagens aéreas**. A interação ocorre por meio de **mensagens naturais**, utilizando o Azure Bot Framework e o Processamento de Linguagem Natural (NLP) para interpretar as solicitações do usuário.
+Esta entrega implementa um **chatbot de reservas** (Bot Framework SDK em Python) integrado a um **backend** (Spring Boot + PostgreSQL).
 
-O chatbot é projetado para:
+O foco é permitir:
 
-*   Entender as intenções do usuário.
-*   Consultar hotéis e voos em APIs externas públicas/gratuitas.
-*   Analisar o sentimento da conversa (satisfação ou frustração).
-*   Armazenar métricas de uso e histórico de conversas.
+- **Cadastrar Cliente** (Nome, Email, Telefone).
+- **Reservar Voo (Promoções)**: o bot exibe **3 ofertas**, o usuário escolhe uma, informa seu **ID** e a reserva é criada.
+- **Meus Dados**: consulta por **ID** e exibe dados do usuário e **todas as reservas de voo** dele.
 
-## 2. Funcionalidades Chave (Escopo do Sistema)
+> O menu inicial é exibido **automaticamente** após a saudação.
 
-O sistema possui as seguintes funcionalidades principais:
+## 2. Funcionalidades Entregues
 
-*   **Interação com o Usuário:** Disponível via Chat (WebChat, Teams, e Telegram opcional).
-*   **Processamento de Linguagem Natural (NLP):** Utiliza **LUIS** (parte do Azure Cognitive Services) para processar linguagem, identificar intenções e extrair entidades. O chatbot deve entender pelo menos 5 intenções principais para ser aceito.
-*   **Análise de Sentimento:** Utiliza **Text Analytics** (Azure Cognitive Services) para avaliar o sentimento do usuário.
-*   **Consulta Externa:** Integração com APIs de Hotéis (como Hotelbeds ou Amadeus) e APIs de Voos (como Skyscanner ou Kiwi Tequila) para busca de disponibilidade. O critério de aceite exige integração com pelo menos 1 API de hotel e 1 de voo.
-*   **Armazenamento de Dados:** Armazenamento do histórico de conversas e sentimentos analisados em **Azure Cosmos DB** ou **SQL Database**.
+- **Bot**
+  - Menu principal com **Cadastrar Cliente**, **Reservar Voo**, **Meus Dados** e **Ajuda**.
+  - **Cadastrar Cliente** → `POST /usuarios`.
+  - **Reservar Voo (Promoções)** → mostra 3 opções; após escolha e ID, envia `POST /reservas-voo`.
+  - **Meus Dados** → `GET /usuarios/{id}` e `GET /reservas-voo/usuario/{id}`.
 
-## 3. Arquitetura e Tecnologias
+- **Backend**
+  - **Usuários**: criação e consulta.
+  - **Reservas de Voo**: criação e listagem por usuário.
+  - Persistência em **PostgreSQL** (Docker).
 
-O sistema é construído majoritariamente sobre a plataforma Azure, garantindo escalabilidade e robustez.
+---
 
-| Componente | Tecnologia / Serviço |
-| :--- | :--- |
-| **Framework Principal** | **Azure Bot Service + Bot Framework SDK** |
-| **NLP e Sentimento** | Azure Cognitive Services (LUIS e Text Analytics) |
-| **Hospedagem / Backend** | Azure Functions (Serverless, essencial para lidar com picos de escalabilidade) |
-| **Banco de Dados** | Azure Cosmos DB ou SQL Database |
-| **Linguagens Suportadas** | C#, Java, Node.js, Python (para o Bot Framework) |
-| **Relatórios (Opcional)** | Power BI (ou Power BI Embedded) para métricas |
+## 3. Como Rodar
 
-O **fluxo de mensagem** padrão envolve o Bot Framework enviando a mensagem do usuário para o LUIS, que retorna a intenção e entidades. Em seguida, o Text Analytics avalia o sentimento. Uma **Azure Function** consulta a API apropriada e retorna as opções ao usuário, armazenando o histórico da conversa.
+--------------------------------  
+**Parte do Bot:**
 
-## 4. Requisitos de Qualidade (Não Funcionais)
+Entrar na pasta `bot-reserva`
 
-O projeto possui requisitos de disponibilidade de **99,5%**, sendo suportado por uma arquitetura *Serverless* (Azure Functions) para garantir a **escalabilidade** necessária para lidar com picos de uso.
+```powershell
+# se ainda não existir a venv:
+py -3.10 -m venv .venv
+
+# ativar a venv
+.\.venv\Scripts\Activate.ps1
+
+# instalar dependências (use requirements.txt se existir)
+python -m pip install --upgrade pip
+pip install -r requirements.txt  # se houver esse arquivo
+```
+
+Defina a URL do backend e execute o bot:
+
+```powershell
+$env:API_BASE="http://localhost:8080"
+python app.py
+```
+
+No **Bot Framework Emulator**, conectar em:
+```
+http://localhost:3978/api/messages
+```
+-----------------------------------
+
+**Parte do Back:**
+
+Inicia Docker Desktop  
+No PowerShell:
+```powershell
+docker run --name pg-bigdata -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=dudumimi21 -e POSTGRES_DB=BigData -p 5432:5432 -d postgres:16
+```
+
+Na pasta `ChatBot-API`:
+```powershell
+.\mvnw spring-boot:run
+```
+-----------------------
