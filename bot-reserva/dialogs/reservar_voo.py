@@ -31,7 +31,7 @@ class ReservarVooDialog(ComponentDialog):
         # 3 promoções fixas (DEMO) – ajuste se quiser
         self.promos = [
             {
-                "label": "1) GOL - GRU → REC | 2025-12-15 09:30 | R$ 899,90",
+                "label": "I) GOL - GRU → REC | 2025-12-15 09:30 | R$ 899,90",
                 "companhiaAerea": "GOL",
                 "origem": "GRU",
                 "destino": "REC",
@@ -39,7 +39,7 @@ class ReservarVooDialog(ComponentDialog):
                 "preco": "899,90",
             },
             {
-                "label": "2) AZUL - SDU → CNF | 2025-11-20 07:00 | R$ 499,00",
+                "label": "II) AZUL - SDU → CNF | 2025-11-20 07:00 | R$ 499,00",
                 "companhiaAerea": "AZUL",
                 "origem": "SDU",
                 "destino": "CNF",
@@ -47,7 +47,7 @@ class ReservarVooDialog(ComponentDialog):
                 "preco": "499,00",
             },
             {
-                "label": "3) LATAM - GRU → POA | 2025-10-25 20:15 | R$ 399,90",
+                "label": "III) LATAM - GRU → POA | 2025-10-25 20:15 | R$ 399,90",
                 "companhiaAerea": "LATAM",
                 "origem": "GRU",
                 "destino": "POA",

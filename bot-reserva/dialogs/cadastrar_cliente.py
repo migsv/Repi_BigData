@@ -31,10 +31,9 @@ class CadastrarClienteDialog(ComponentDialog):
         partes = [p.strip() for p in bruto.split("|")]
         nome = partes[0] if len(partes) > 0 else ""
         email = partes[1] if len(partes) > 1 else ""
-        doc = partes[2] if len(partes) > 2 else ""
-        tel = partes[3] if len(partes) > 3 else ""
+        tel = partes[2] if len(partes) > 2 else ""
 
-        if not (nome and email and doc and tel):
+        if not (nome and email and tel):
             await step_context.context.send_activity(
                 MessageFactory.text("Formato inválido. Tente: Nome | Email | Telefone")
             )
@@ -44,7 +43,7 @@ class CadastrarClienteDialog(ComponentDialog):
         # import tardio (evita qualquer ordem de import chata)
         from services.backend import create_user, BackendError
         try:
-            user = await create_user(nome, email, doc, tel)
+            user = await create_user(nome, email, tel)
             msg = (
                 "Cliente cadastrado com sucesso!\n"
                 f"ID: {user.get('id')}\n"
