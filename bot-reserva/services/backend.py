@@ -11,9 +11,15 @@ class BackendError(Exception):
 def print_test():
     print("Backend service is reachable at", API_BASE)
 
-async def create_user(nome: str, email: str, documento: str) -> dict:
+async def _post_json(session, url, payload):
+    resp = await session.post(url, json=payload)
+    txt = await resp.text()
+    return resp, txt
+
+async def create_user(nome: str, email: str, documento: str, telefone: str) -> dict:
     url = f"{API_BASE}/usuarios"
-    payload = {"nome": nome, "email": email, "documento": documento}
+    payload = {"nome": nome, "email": email, "documento": documento, "telefone": telefone}
+
     timeout = aiohttp.ClientTimeout(total=10)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         async with session.post(url, json=payload) as resp:
@@ -28,5 +34,3 @@ async def create_user(nome: str, email: str, documento: str) -> dict:
                 raise BackendError("Usuário já existe (409). " + txt)
             raise BackendError(f"Erro {resp.status} ao criar usuário: {txt}")
 
-# Resolveu um problema pontual
-__all__ = ["print_test", "create_user", "BackendError"]
