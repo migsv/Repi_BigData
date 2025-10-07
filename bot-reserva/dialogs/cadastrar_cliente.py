@@ -18,11 +18,11 @@ class CadastrarClienteDialog(ComponentDialog):
 
     async def prompt_cadastro_step(self, step_context: WaterfallStepContext):
         message = MessageFactory.text(
-            "Cadastro de Cliente\nInforme: Nome | Email | Documento | Telefone"
+            "Cadastro de Cliente\nInforme: Nome | Email | Telefone"
         )
         prompt_option = PromptOptions(
             prompt=message,
-            retry_prompt=MessageFactory.text("Formato inválido. Ex.: Ana | ana@email.com | 123.456.789-00 | (11) 91234-5678")
+            retry_prompt=MessageFactory.text("Formato inválido. Ex.: Ana | ana@email.com | (11) 91234-5678")
         )
         return await step_context.prompt(TextPrompt.__name__, prompt_option)
 
@@ -36,7 +36,7 @@ class CadastrarClienteDialog(ComponentDialog):
 
         if not (nome and email and doc and tel):
             await step_context.context.send_activity(
-                MessageFactory.text("Formato inválido. Tente: Nome | Email | Documento | Telefone")
+                MessageFactory.text("Formato inválido. Tente: Nome | Email | Telefone")
             )
             return await step_context.end_dialog()
 
@@ -50,7 +50,6 @@ class CadastrarClienteDialog(ComponentDialog):
                 f"ID: {user.get('id')}\n"
                 f"Nome: {user.get('nome') or user.get('name')}\n"
                 f"Email: {user.get('email')}\n"
-                f"Documento: {user.get('documento') or user.get('document')}\n"
                 f"Telefone: {user.get('telefone') or user.get('phone')}"
             )
             await step_context.context.send_activity(MessageFactory.text(msg))

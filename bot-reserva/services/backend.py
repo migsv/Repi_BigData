@@ -16,9 +16,9 @@ async def _post_json(session, url, payload):
     txt = await resp.text()
     return resp, txt
 
-async def create_user(nome: str, email: str, documento: str, telefone: str) -> dict:
+async def create_user(nome: str, email: str, telefone: str) -> dict:
     url = f"{API_BASE}/usuarios"
-    payload = {"nome": nome, "email": email, "documento": documento, "telefone": telefone}
+    payload = {"nome": nome, "email": email, "telefone": telefone}
 
     timeout = aiohttp.ClientTimeout(total=10)
     async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -112,3 +112,48 @@ async def create_reserva_voo(
             if resp.status == 409:
                 raise BackendError("Reserva já existe (409). " + txt)
             raise BackendError(f"Erro {resp.status} ao criar reserva de voo: {txt}")
+
+async def _safe_json(resp: aiohttp.ClientResponse):
+    """
+    Tenta decodificar JSON mesmo se o Content-Type vier 'errado' ou vazio.
+    Se falhar, devolve {"_raw": <texto>} para debug.
+    """
+    try:
+        return await resp.json(content_type=None)
+    except Exception:
+        txt = await resp.text()
+        try:
+            return json.loads(txt)
+        except Exception:
+            return {"_raw": txt}
+
+async def get_user(user_id: int) -> dict:
+    url = f"{API_BASE}/usuarios/{int(user_id)}"
+    timeout = aiohttp.ClientTimeout(total=10)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with session.get(url) as resp:
+            if resp.status == 200:
+                data = await _safe_json(resp)
+                if not data:
+                    raise BackendError("Usuário não encontrado (resposta vazia).")
+                return data
+            if resp.status == 404:
+                raise BackendError("Usuário não encontrado (404).")
+            txt = await resp.text()
+            raise BackendError(f"Erro {resp.status} ao buscar usuário: {txt}")
+
+async def get_reservas_voo_by_usuario(user_id: int) -> list[dict]:
+    url = f"{API_BASE}/reservas-voo/usuario/{int(user_id)}"
+    timeout = aiohttp.ClientTimeout(total=10)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with session.get(url) as resp:
+            if resp.status == 200:
+                data = await _safe_json(resp)
+                # alguns controllers retornam objeto { ... } em vez de lista
+                if isinstance(data, dict):
+                    return [data]
+                return data or []
+            if resp.status == 404:
+                return []  # trate 404 como “sem reservas”
+            txt = await resp.text()
+            raise BackendError(f"Erro {resp.status} ao listar reservas: {txt}")

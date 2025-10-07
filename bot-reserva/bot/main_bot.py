@@ -40,6 +40,10 @@ class MainBot(ActivityHandler):
                 await turn_context.send_activity(
                     MessageFactory.text(
                         f"Seja bem vindo(a) ao bot de atendimento da GranVoyage! Ajudaremos você a marcar a viagem dos seus sonhos.\n"
-                        f"Digite uma mensagem para iniciar o atendimento."
                     )
+                )
+                await DialogHelper.run_dialog(
+                    self.dialog,
+                    turn_context,
+                    self.conversation_state.create_property("MainDialogState")
                 )
