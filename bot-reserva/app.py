@@ -22,6 +22,14 @@ from bot.main_bot import MainBot
 from config import DefaultConfig
 from dialogs.main_dialog import MainDialog
 
+import os
+from dotenv import load_dotenv, find_dotenv
+
+# Carrega o .env
+load_dotenv(find_dotenv(), override=False)
+
+API_BASE = os.getenv("API_BASE", "http://localhost:8080")
+
 CONFIG = DefaultConfig()
 
 # Create adapter.

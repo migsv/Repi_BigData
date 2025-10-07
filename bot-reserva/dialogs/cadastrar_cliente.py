@@ -26,6 +26,7 @@ class CadastrarClienteDialog(ComponentDialog):
             retry_prompt=MessageFactory.text("Formato inválido. Ex.: Ana | ana@email.com | 123.456.789-00")
         )
         return await step_context.prompt(TextPrompt.__name__, prompt_option)
+    
 
     async def process_cadastro_step(self, step_context: WaterfallStepContext):
         bruto = str(step_context.result or "")
@@ -33,7 +34,36 @@ class CadastrarClienteDialog(ComponentDialog):
         nome = partes[0] if len(partes) > 0 else ""
         email = partes[1] if len(partes) > 1 else ""
         doc = partes[2] if len(partes) > 2 else ""
-        await step_context.context.send_activity(
-            MessageFactory.text(f"Cliente cadastrado (DEMO)\nNome: {nome}\nEmail: {email}\nDocumento: {doc}")
-        )
+
+        # validação básica
+        if not nome or not email or not doc:
+            await step_context.context.send_activity(
+                MessageFactory.text("Formato inválido. Tente: Nome | Email | Documento")
+            )
+            return await step_context.end_dialog()
+
+        # Integra com o backend
+        from services.backend import create_user, BackendError
+        try:
+            user = await create_user(nome, email, doc)  # chama o POST /usuarios
+            # Monte a resposta usando o que o backend devolve
+            # Ex.: {"id":1,"nome":"Ana","email":"...","documento":"..."}
+            msg = (
+                "Cliente cadastrado com sucesso!\n"
+                f"ID: {user.get('id')}\n"
+                f"Nome: {user.get('nome') or user.get('name')}\n"
+                f"Email: {user.get('email')}\n"
+                f"Documento: {user.get('documento') or user.get('document')}"
+            )
+            await step_context.context.send_activity(MessageFactory.text(msg))
+        except BackendError as e:
+            await step_context.context.send_activity(
+                MessageFactory.text(f"Não foi possível cadastrar: {e}")
+            )
+        except Exception as e:
+            await step_context.context.send_activity(
+                MessageFactory.text(f"Erro inesperado ao cadastrar: {e}")
+            )
+
         return await step_context.end_dialog()
+
