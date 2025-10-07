@@ -1,0 +1,5 @@
+/bot-reserva/.venv/
+/bot-reserva/__pycache__/
+/bot-reserva/bot/__pycache__/
+/bot-reserva/dialogs/__pycache__/
+/bot-reserva/helpers/__pycache__/
