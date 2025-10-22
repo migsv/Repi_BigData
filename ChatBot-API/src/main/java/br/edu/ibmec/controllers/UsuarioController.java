@@ -15,20 +15,17 @@ import java.util.UUID;
 @RequestMapping("/usuarios")
 public class UsuarioController {
 
-    private final usuarioservice usuarioService;
-
-    public UsuarioController(usuarioservice usuarioService) {
-        this.usuarioService = usuarioService;
-    }
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @GetMapping
     public Iterable<Usuario> getAllUsuarios() {
-        return usuarioService.obterTodosUsuarios();
+        return usuarioRepository.findAll();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Usuario> getUsuarioById(@PathVariable Long id) {
-        Optional<Usuario> usuario = usuarioService.obterUsuarioPorId(id);
+        Optional<Usuario> usuario = usuarioRepository.findById(id);
         return usuario.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

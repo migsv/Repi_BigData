@@ -12,7 +12,7 @@ import com.azure.spring.data.cosmos.core.mapping.PartitionKey;
 public class Usuario {
   
     @Id
-    private Long id;
+    private String id;
 
     @PartitionKey
     private String cpf;
