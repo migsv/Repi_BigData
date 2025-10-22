@@ -8,5 +8,5 @@ import com.azure.spring.data.cosmos.repository.CosmosRepository;
 
 @Repository
 public interface UsuarioRepository extends CosmosRepository<Usuario, String> {
-    Optional<Usuario> findByEmail(String email);
+    Optional<Usuario> findByCpf(String cpf);
 }
