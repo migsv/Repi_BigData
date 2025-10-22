@@ -1,4 +1,4 @@
-package br.edu.ibmec.chatbot_api.config;
+package br.edu.ibmec.config;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +14,7 @@ import com.azure.spring.data.cosmos.repository.config.EnableCosmosRepositories;
 @Configuration
 @EnableConfigurationProperties(CosmosProperties.class)
 @PropertySource("classpath:application.properties")
-@EnableCosmosRepositories(basePackages = "br.edu.ibmec.chatbot_api.repository")
+@EnableCosmosRepositories(basePackages = "br.edu.ibmec.repository")
 public class CosmosConfiguration extends AbstractCosmosConfiguration {
     private CosmosProperties cosmosProperties;
 

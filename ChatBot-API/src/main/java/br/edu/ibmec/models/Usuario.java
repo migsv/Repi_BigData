@@ -1,34 +1,29 @@
 package br.edu.ibmec.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import org.springframework.data.annotation.Id;
+
 import lombok.Data;
 
+import com.azure.spring.data.cosmos.core.mapping.Container;
+import com.azure.spring.data.cosmos.core.mapping.PartitionKey;
+
 @Data
-@Entity
+@Container(containerName = "Usuarios")
 public class Usuario {
   
-      @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
     private Long id;
-    @Column(nullable = false)
+
+    @PartitionKey
+    private String cpf;
+
     private String nome;
     
-    @Column(nullable = false, unique = true)
     private String email;
     
-    @Column
     private String telefone;
     
-    @Column
-    private String idioma = "pt-BR";
-    
-    @Column
-    private String moeda = "BRL";
-
-    // Construtores, getters e setters podem ser gerados pelo Lombok (@Data)
+    private List<ReservaVoo> reservasVoo;
+    private List<ReservaHotel> reservasHotel;
 
 }

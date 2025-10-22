@@ -1,4 +1,4 @@
-package br.edu.ibmec.chatbot_api.config;
+package br.edu.ibmec.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

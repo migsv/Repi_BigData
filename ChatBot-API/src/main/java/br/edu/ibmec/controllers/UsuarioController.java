@@ -1,12 +1,15 @@
 package br.edu.ibmec.controllers;
 
-import br.edu.ibmec.dto.usuariodto;
-import br.edu.ibmec.services.usuarioservice;
+import br.edu.ibmec.models.Usuario;
+import br.edu.ibmec.repository.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -19,34 +22,34 @@ public class UsuarioController {
     }
 
     @GetMapping
-    public List<usuariodto> getAllUsers() {
+    public Iterable<Usuario> getAllUsuarios() {
         return usuarioService.obterTodosUsuarios();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<usuariodto> getUserById(@PathVariable Long id) {
-        Optional<usuariodto> user = usuarioService.obterUsuarioPorId(id);
-        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<Usuario> getUsuarioById(@PathVariable Long id) {
+        Optional<Usuario> usuario = usuarioService.obterUsuarioPorId(id);
+        return usuario.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/cpf/{cpf}")
+    public ResponseEntity<Usuario> getUsuarioByCpf(@PathVariable String cpf) {
+        Optional<Usuario> usuario = usuarioRepository.findByCpf(cpf);
+        return usuario.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public usuariodto createUser(@RequestBody usuariodto userDTO) {
-        return usuarioService.salvarUsuario(userDTO);
-    }
+    public ResponseEntity<Usuario> createUsuario(@RequestBody Usuario usuario) {
 
-    @PutMapping("/{id}")
-    public ResponseEntity<usuariodto> updateUser(@PathVariable Long id, @RequestBody usuariodto userDTO) {
-        try {
-            usuariodto updatedUser = usuarioService.atualizarUsuario(id, userDTO);
-            return ResponseEntity.ok(updatedUser);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+        Optional<Usuario> existingUsuario = usuarioRepository.findByCpf(usuario.getCpf());
+        if (existingUsuario.isPresent()) {
+            return ResponseEntity.ok(existingUsuario.get());
         }
-    }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        usuarioService.deletarUsuario(id);
-        return ResponseEntity.noContent().build();
+        usuario.setId(UUID.randomUUID().toString());
+        Usuario savedUsuario = usuarioRepository.save(usuario);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedUsuario);
     }
 }
