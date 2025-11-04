@@ -1,6 +1,5 @@
 package br.edu.ibmec.models;
 
-import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
