@@ -20,8 +20,7 @@ public class ReservaVoo {
     private LocalDateTime dataRetorno;
     
     private BigDecimal preco;
-    
-    @Column(nullable = false)
+
     private StatusReserva status = StatusReserva.PENDENTE;
     
     public enum StatusReserva {

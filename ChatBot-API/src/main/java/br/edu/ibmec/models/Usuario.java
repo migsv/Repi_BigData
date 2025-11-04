@@ -7,6 +7,8 @@ import lombok.Data;
 import com.azure.spring.data.cosmos.core.mapping.Container;
 import com.azure.spring.data.cosmos.core.mapping.PartitionKey;
 
+import java.util.List;
+
 @Data
 @Container(containerName = "Usuarios")
 public class Usuario {
