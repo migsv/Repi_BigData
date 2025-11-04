@@ -31,7 +31,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/ChatBot-API/*.jar'
+          path: '${{ github.workspace }}/ChatBot-API/target/*.jar'
 
   deploy:
     runs-on: ubuntu-latest
