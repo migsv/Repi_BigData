@@ -21,16 +21,16 @@ class VisualizarDadosDialog(ComponentDialog):
         return await step_context.prompt(
             "idPrompt",
             PromptOptions(
-                prompt=MessageFactory.text("Digite seu ID de usuário (ex.: 1):"),
-                retry_prompt=MessageFactory.text("ID inválido. Digite um número inteiro (ex.: 1).")
+                prompt=MessageFactory.text(
+                    "Digite seu ID de usuário (cole o valor exibido após o cadastro, por exemplo "
+                    "63bef74d-1b52-4959-9b4a-2bfb312fad24):"
+                )
             )
         )
 
     async def mostrar_dados_step(self, step_context: WaterfallStepContext):
-        raw = str(step_context.result or "").strip()
-        try:
-            user_id = int(raw)
-        except Exception:
+        user_id = str(step_context.result or "").strip()
+        if not user_id:
             await step_context.context.send_activity(
                 MessageFactory.text("ID inválido. Operação cancelada.")
             )

@@ -3,3 +3,5 @@ botbuilder-dialogs>=4.15.0
 
 python-dotenv>=1.0,<2.0
 
+azure-ai-language-conversations==1.1.0
+azure-core>=1.29.0

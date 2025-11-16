@@ -96,16 +96,16 @@ class ReservarVooDialog(ComponentDialog):
         return await step_context.prompt(
             "usuarioIdPrompt",
             PromptOptions(
-                prompt=MessageFactory.text("Informe seu ID de usuário para confirmar a reserva (ex.: 1):"),
-                retry_prompt=MessageFactory.text("ID inválido. Digite um número inteiro (ex.: 1).")
+                prompt=MessageFactory.text(
+                    "Informe seu ID de usuário para confirmar a reserva.\n"
+                    "Use o ID completo exibido após o cadastro (ex.: 63bef74d-1b52-4959-9b4a-2bfb312fad24)."
+                )
             )
         )
 
     async def criar_reserva_step(self, step_context: WaterfallStepContext):
-        usuario_id_raw = str(step_context.result or "").strip()
-        try:
-            usuario_id = int(usuario_id_raw)
-        except Exception:
+        usuario_id = str(step_context.result or "").strip()
+        if not usuario_id:
             await step_context.context.send_activity(
                 MessageFactory.text("ID inválido. Operação cancelada.")
             )

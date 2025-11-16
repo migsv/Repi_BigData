@@ -18,15 +18,19 @@ from botbuilder.core import (
 from botbuilder.core.integration import aiohttp_error_middleware
 from botbuilder.schema import Activity, ActivityTypes
 
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Carrega o .env a partir da pasta do projeto (bot-reserva)
+BASE_DIR = Path(__file__).resolve().parent
+ENV_PATH = BASE_DIR / ".env"
+load_dotenv(ENV_PATH, override=False)
+
+
 from bot.main_bot import MainBot
 from config import DefaultConfig
 from dialogs.main_dialog import MainDialog
-
-import os
-from dotenv import load_dotenv, find_dotenv
-
-# Carrega o .env
-load_dotenv(find_dotenv(), override=False)
 
 API_BASE = os.getenv("API_BASE", "http://localhost:8080")
 

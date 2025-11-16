@@ -7,7 +7,7 @@ Repositório do projeto da aula de BigData | Ibmec
 
 ## 1. Visão Geral
 
-Esta entrega implementa um **chatbot de reservas** (Bot Framework SDK em Python) integrado a um **backend** (Spring Boot + PostgreSQL).
+Esta entrega implementa um **chatbot de reservas** (Bot Framework SDK em Python) integrado a um **backend** (Spring Boot + **Azure Cosmos DB**). Não há mais uso de PostgreSQL.
 
 O foco é permitir:
 
@@ -15,7 +15,7 @@ O foco é permitir:
 - **Reservar Voo (Promoções)**: o bot exibe **3 ofertas**, o usuário escolhe uma, informa seu **ID** e a reserva é criada.
 - **Meus Dados**: consulta por **ID** e exibe dados do usuário e **todas as reservas de voo** dele.
 
-> O menu inicial é exibido **automaticamente** após a saudação.
+> O menu inicial é exibido automaticamente logo após a saudação.
 
 ## 2. Funcionalidades Entregues
 
@@ -24,56 +24,47 @@ O foco é permitir:
   - **Cadastrar Cliente** → `POST /usuarios`.
   - **Reservar Voo (Promoções)** → mostra 3 opções; após escolha e ID, envia `POST /reservas-voo`.
   - **Meus Dados** → `GET /usuarios/{id}` e `GET /reservas-voo/usuario/{id}`.
+  - > Ao concluir o cadastro, o bot exibe um **ID completo (UUID)**. Guarde esse valor e cole-o sempre que for reservar voos ou consultar “Meus Dados”.
 
 - **Backend**
   - **Usuários**: criação e consulta.
   - **Reservas de Voo**: criação e listagem por usuário.
-  - Persistência em **PostgreSQL** (Docker).
+  - Persistência em **Azure Cosmos DB** (configuração em `ChatBot-API/src/main/resources/application.properties`).
 
 ---
 
 ## 3. Como Rodar
 
---------------------------------  
-**Parte do Bot:**
+### 3.1 Backend (Spring Boot + Cosmos DB)
 
-Entrar na pasta `bot-reserva`
+1. Garanta que a conta do **Azure Cosmos DB** esteja ativa e que `application.properties` contenha `uri`, `key` e `database` corretos.
+2. Em um terminal na pasta `ChatBot-API`, execute:
+   ```powershell
+   .\mvnw spring-boot:run
+   ```
+3. Os endpoints ficarão disponíveis em `http://localhost:8080/api` (por exemplo, `http://localhost:8080/api/usuarios`).
 
-```powershell
-# se ainda não existir a venv:
-py -3.10 -m venv .venv
+### 3.2 Bot (Python)
 
-# ativar a venv
-.\.venv\Scripts\Activate.ps1
+1. Vá para a pasta `bot-reserva` e configure o ambiente virtual:
+   ```powershell
+   py -3.10 -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   python -m pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+2. Aponte o bot para o backend (o `.env` já usa o mesmo valor) e execute-o:
+   ```powershell
+   $env:API_BASE = "http://localhost:8080/api"
+   python app.py
+   ```
+   > Sempre inclua o sufixo `/api`, pois o backend expõe seus recursos nesse contexto.
 
-# instalar dependências (use requirements.txt se existir)
-python -m pip install --upgrade pip
-pip install -r requirements.txt  # se houver esse arquivo
-```
+### 3.3 Bot Framework Emulator
 
-Defina a URL do backend e execute o bot:
-
-```powershell
-$env:API_BASE="http://localhost:8080"
-python app.py
-```
-
-No **Bot Framework Emulator**, conectar em:
+No **Bot Framework Emulator**, conecte-se em:
 ```
 http://localhost:3978/api/messages
 ```
------------------------------------
 
-**Parte do Back:**
-
-Inicia Docker Desktop  
-No PowerShell:
-```powershell
-docker run --name pg-bigdata -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=dudumimi21 -e POSTGRES_DB=BigData -p 5432:5432 -d postgres:16
-```
-
-Na pasta `ChatBot-API`:
-```powershell
-.\mvnw spring-boot:run
-```
------------------------
+**Ordem recomendada:** Cosmos DB disponível → backend (`.\mvnw spring-boot:run`) → bot Python (`python app.py`) → Bot Framework Emulator.

@@ -40,9 +40,14 @@ public class UsuarioController {
     @PostMapping
     public ResponseEntity<Usuario> createUsuario(@RequestBody Usuario usuario) {
 
-        Optional<Usuario> existingUsuario = usuarioRepository.findByCpf(usuario.getCpf());
-        if (existingUsuario.isPresent()) {
-            return ResponseEntity.ok(existingUsuario.get());
+        String cpf = usuario.getCpf();
+        if (cpf != null && !cpf.isBlank()) {
+            Optional<Usuario> existingUsuario = usuarioRepository.findByCpf(cpf);
+            if (existingUsuario.isPresent()) {
+                return ResponseEntity.ok(existingUsuario.get());
+            }
+        } else {
+            usuario.setCpf(UUID.randomUUID().toString());
         }
 
         usuario.setId(UUID.randomUUID().toString());

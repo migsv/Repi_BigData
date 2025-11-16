@@ -3,8 +3,22 @@ from botbuilder.schema import ChannelAccount
 from botbuilder.dialogs import Dialog
 from helpers.DialogHelper import DialogHelper
 
+from services.language_client import analyze_intent
 
 class MainBot(ActivityHandler):
+    MENU_OPTIONS = {"Cadastrar Cliente", "Reservar Voo", "Meus Dados", "Ajuda"}
+    INTENT_TO_OPTION = {
+        "ComprarVoo": "Reservar Voo",
+        "ConsultarVoo": "Meus Dados",
+    }
+    INFORM_INTENTS = {
+        "CancelarVoo": "Ainda não implementamos cancelamento de voos pelo bot. "
+                       "Use um atendente ou aguarde as próximas versões.",
+        "ReservarHotel": "O fluxo de reserva de hotel será habilitado em breve.",
+        "ConsultarHotel": "Consulta de reservas de hotel ainda não está disponível.",
+        "CancelarHotel": "Cancelamento de hotel ainda não foi implementado.",
+    }
+    INTENT_THRESHOLD = 0.65
     
     def __init__(self, 
                  dialog: Dialog,
@@ -24,6 +38,7 @@ class MainBot(ActivityHandler):
      
         
     async def on_message_activity(self, turn_context: TurnContext):
+        await self._maybe_route_by_intent(turn_context)
         await DialogHelper.run_dialog(
             self.dialog,
             turn_context,
@@ -47,3 +62,36 @@ class MainBot(ActivityHandler):
                     turn_context,
                     self.conversation_state.create_property("MainDialogState")
                 )
+
+    async def _maybe_route_by_intent(self, turn_context: TurnContext):
+        text = (turn_context.activity.text or "").strip()
+        if not text or text in self.MENU_OPTIONS:
+            return
+
+        try:
+            top_intent, score, entities = await analyze_intent(text)
+        except Exception as exc:
+            # Log localmente e segue com o fluxo padrão
+            print(f"[LanguageService] Falha ao analisar texto: {exc}")
+            return
+
+        if score < self.INTENT_THRESHOLD:
+            return
+
+        mapped_option = self.INTENT_TO_OPTION.get(top_intent)
+        if mapped_option:
+            await turn_context.send_activity(
+                MessageFactory.text(
+                    f"Entendi que você deseja '{mapped_option}' (intent {top_intent}, {score:.0%})."
+                )
+            )
+            turn_context.activity.text = mapped_option
+            return
+
+        extra_message = self.INFORM_INTENTS.get(top_intent)
+        if extra_message:
+            await turn_context.send_activity(
+                MessageFactory.text(
+                    f"Detectei a intenção '{top_intent}' ({score:.0%}). {extra_message}"
+                )
+            )

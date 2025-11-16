@@ -55,7 +55,7 @@ def _parse_preco(preco_str: str) -> float:
     return float(s)
 
 async def create_reserva_voo(
-    usuario_id: int,
+    usuario_id: str,
     origem: str,
     destino: str,
     data_partida: str,
@@ -86,7 +86,7 @@ async def create_reserva_voo(
 
     payload = {
         # 👇 aqui está a mudança crucial:
-        "usuario": {"id": int(usuario_id)},
+        "usuario": {"id": str(usuario_id)},
         "origem": origem,
         "destino": destino,
         "dataPartida": _to_iso_datetime(data_partida),
@@ -127,8 +127,9 @@ async def _safe_json(resp: aiohttp.ClientResponse):
         except Exception:
             return {"_raw": txt}
 
-async def get_user(user_id: int) -> dict:
-    url = f"{API_BASE}/usuarios/{int(user_id)}"
+async def get_user(user_id: str) -> dict:
+    user_id = str(user_id).strip()
+    url = f"{API_BASE}/usuarios/{user_id}"
     timeout = aiohttp.ClientTimeout(total=10)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         async with session.get(url) as resp:
@@ -142,8 +143,9 @@ async def get_user(user_id: int) -> dict:
             txt = await resp.text()
             raise BackendError(f"Erro {resp.status} ao buscar usuário: {txt}")
 
-async def get_reservas_voo_by_usuario(user_id: int) -> list[dict]:
-    url = f"{API_BASE}/reservas-voo/usuario/{int(user_id)}"
+async def get_reservas_voo_by_usuario(user_id: str) -> list[dict]:
+    user_id = str(user_id).strip()
+    url = f"{API_BASE}/reservas-voo/usuario/{user_id}"
     timeout = aiohttp.ClientTimeout(total=10)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         async with session.get(url) as resp:
