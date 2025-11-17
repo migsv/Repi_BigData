@@ -31,9 +31,10 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        reservaVooRepository.deleteAll();
-        reservaHotelRepository.deleteAll();
-        usuarioRepository.deleteAll();
+        boolean jaPossuiUsuarios = usuarioRepository.findAll().iterator().hasNext();
+        if (jaPossuiUsuarios) {
+            return;
+        }
 
         Usuario demoUser = criarUsuario(
                 "Cliente Demo",
