@@ -7,7 +7,7 @@ Repositório do projeto da aula de BigData | Ibmec
 
 ## 1. Visão Geral
 
-Esta entrega implementa um **chatbot de reservas** (Bot Framework SDK em Python) integrado a um **backend** (Spring Boot + PostgreSQL).
+Esta entrega implementa um **chatbot de reservas** (Bot Framework SDK em Python) integrado a um **backend** (Spring Boot + CosmosDB).
 
 O foco é permitir:
 
@@ -28,7 +28,7 @@ O foco é permitir:
 - **Backend**
   - **Usuários**: criação e consulta.
   - **Reservas de Voo**: criação e listagem por usuário.
-  - Persistência em **PostgreSQL** (Docker).
+  - Persistência em **CosmosDB** (Azure).
 
 ---
 
