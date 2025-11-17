@@ -62,7 +62,8 @@ class CancelarHotelDialog(ComponentDialog):
                 f"   {format_date(r.get('dataCheckIn'))} → {format_date(r.get('dataCheckOut'))} | "
                 f"Status: {format_status(r.get('status'))}"
             )
-            choices.append(Choice(value=str(idx), synonyms=[str(idx), r.get("id")]))
+            label = f"Opção {idx}"
+            choices.append(Choice(value=label, synonyms=[str(idx), label, r.get("id")]))
 
         await step_context.context.send_activity(MessageFactory.text("\n".join(linhas)))
         return await step_context.prompt(
@@ -70,7 +71,7 @@ class CancelarHotelDialog(ComponentDialog):
             PromptOptions(
                 prompt=MessageFactory.text("Selecione qual reserva deseja cancelar:"),
                 choices=choices,
-                style=ListStyle.hero_card,
+                style=ListStyle.suggested_action,
             ),
         )
 
@@ -78,7 +79,8 @@ class CancelarHotelDialog(ComponentDialog):
         choice = step_context.result
         reservas = step_context.values.get("reservas", [])
         try:
-            idx = int(choice.value) - 1
+            selected = "".join(filter(str.isdigit, str(choice.value or "")))
+            idx = int(selected) - 1
         except (TypeError, ValueError):
             await step_context.context.send_activity(
                 MessageFactory.text("Opção inválida. Operação cancelada.")

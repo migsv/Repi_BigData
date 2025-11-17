@@ -52,7 +52,6 @@ O bot aceita tanto comandos por menu quanto por linguagem natural (intents no Az
    ```
 2. Aponte o bot para o backend (o `.env` já usa o mesmo valor) e execute-o:
    ```powershell
-   $env:API_BASE = "http://localhost:8080/api"
    python app.py
    ```
    > Sempre inclua o sufixo `/api`, pois o backend expõe seus recursos nesse contexto.
