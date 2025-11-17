@@ -18,8 +18,10 @@ public class ReservaVoo {
     @PartitionKey
     private String usuarioId;
 
-    private String companhiaAerea;
+    private String usuarioCpf;
 
+    private String companhiaAerea;
+    
     private String origem;
 
     private String destino;
@@ -30,7 +32,7 @@ public class ReservaVoo {
 
     private BigDecimal preco;
 
-    private StatusReserva status = StatusReserva.PENDENTE;
+    private StatusReserva status = StatusReserva.CONFIRMADA;
 
     private LocalDateTime dataCriacao = LocalDateTime.now();
 

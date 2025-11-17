@@ -1,3 +1,5 @@
+import re
+
 from botbuilder.core import ActivityHandler, TurnContext, MessageFactory, UserState, ConversationState
 from botbuilder.schema import ChannelAccount
 from botbuilder.dialogs import Dialog
@@ -6,18 +8,44 @@ from helpers.DialogHelper import DialogHelper
 from services.language_client import analyze_intent
 
 class MainBot(ActivityHandler):
-    MENU_OPTIONS = {"Cadastrar Cliente", "Reservar Voo", "Meus Dados", "Ajuda"}
+    MENU_OPTIONS = {
+        "Cadastrar Cliente",
+        "Reservar Voo",
+        "Consultar Voo",
+        "Cancelar Voo",
+        "Meus Dados",
+        "Reservar Hotel",
+        "Consultar Hotel",
+        "Cancelar Hotel",
+        "Ferramentas Dev",
+        "Ajuda",
+    }
     INTENT_TO_OPTION = {
         "ComprarVoo": "Reservar Voo",
-        "ConsultarVoo": "Meus Dados",
+        "ConsultarVoo": "Consultar Voo",
+        "CancelarVoo": "Cancelar Voo",
+        "ReservarHotel": "Reservar Hotel",
+        "ConsultarHotel": "Consultar Hotel",
+        "CancelarHotel": "Cancelar Hotel",
     }
-    INFORM_INTENTS = {
-        "CancelarVoo": "Ainda não implementamos cancelamento de voos pelo bot. "
-                       "Use um atendente ou aguarde as próximas versões.",
-        "ReservarHotel": "O fluxo de reserva de hotel será habilitado em breve.",
-        "ConsultarHotel": "Consulta de reservas de hotel ainda não está disponível.",
-        "CancelarHotel": "Cancelamento de hotel ainda não foi implementado.",
+    INFORM_INTENTS = {}
+    PROMPT_IGNORE = {
+        "Opção 1",
+        "Opção 2",
+        "Opção 3",
+        "Opção 4",
+        "Opção 5",
+        "Voltar ao Menu",
+        "Voltar",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
     }
+    UUID_REGEX = re.compile(r"^[0-9a-fA-F-]{32,36}$")
+    NUMERIC_REGEX = re.compile(r"^\d+$")
+    PIPE_PATTERN = re.compile(r"\|")
     INTENT_THRESHOLD = 0.65
     
     def __init__(self, 
@@ -28,6 +56,7 @@ class MainBot(ActivityHandler):
         self.dialog = dialog
         self.conversation_state = conversation_state
         self.user_state = user_state
+        self.intent_flag_accessor = self.conversation_state.create_property("IntentRoutingFlag")
         
     async def on_turn(self, turn_context):
         await super().on_turn(turn_context)
@@ -65,7 +94,14 @@ class MainBot(ActivityHandler):
 
     async def _maybe_route_by_intent(self, turn_context: TurnContext):
         text = (turn_context.activity.text or "").strip()
-        if not text or text in self.MENU_OPTIONS:
+        allow_intents = await self.intent_flag_accessor.get(turn_context, True)
+        if (not text
+                or not allow_intents
+                or text in self.MENU_OPTIONS
+                or text in self.PROMPT_IGNORE
+                or self.UUID_REGEX.match(text)
+                or self.NUMERIC_REGEX.match(text)
+                or self.PIPE_PATTERN.search(text)):
             return
 
         try:

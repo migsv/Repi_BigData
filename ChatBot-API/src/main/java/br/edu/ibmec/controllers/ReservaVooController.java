@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,18 +31,18 @@ public class ReservaVooController {
 
     @PostMapping
     public ResponseEntity<ReservaVoo> criarReserva(@RequestBody ReservaVooRequest request) {
-        String usuarioId = Optional.ofNullable(request.resolveUsuarioId())
+        String usuarioId = Optional.ofNullable(request.resolveUsuarioId(usuarioRepository))
                 .map(String::trim)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "O campo usuario.id é obrigatório."));
+                        "É necessário informar o id ou cpf do usuário."));
 
-        if (usuarioRepository.findById(usuarioId).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado.");
-        }
+        var usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
 
         ReservaVoo reserva = new ReservaVoo();
         reserva.setId(UUID.randomUUID().toString());
-        reserva.setUsuarioId(usuarioId);
+        reserva.setUsuarioId(usuario.getId());
+        reserva.setUsuarioCpf(usuario.getCpf());
         reserva.setCompanhiaAerea(request.getCompanhiaAerea());
         reserva.setOrigem(request.getOrigem());
         reserva.setDestino(request.getDestino());
@@ -54,10 +55,33 @@ public class ReservaVooController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
+    @GetMapping
+    public ResponseEntity<List<ReservaVoo>> listarTodas() {
+        List<ReservaVoo> reservas = new ArrayList<>();
+        reservaVooRepository.findAll().forEach(reservas::add);
+        return ResponseEntity.ok(reservas);
+    }
+
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<List<ReservaVoo>> listarPorUsuario(@PathVariable String usuarioId) {
         List<ReservaVoo> reservas = reservaVooRepository.findByUsuarioId(usuarioId);
         return ResponseEntity.ok(reservas);
+    }
+
+    @GetMapping("/cpf/{cpf}")
+    public ResponseEntity<List<ReservaVoo>> listarPorCpf(@PathVariable String cpf) {
+        return usuarioRepository.findByCpf(cpf)
+                .map(usuario -> ResponseEntity.ok(reservaVooRepository.findByUsuarioId(usuario.getId())))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
+    }
+
+    @PatchMapping("/{id}/cancelar")
+    public ResponseEntity<ReservaVoo> cancelar(@PathVariable String id) {
+        ReservaVoo reserva = reservaVooRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reserva não encontrada."));
+        reserva.setStatus(ReservaVoo.StatusReserva.CANCELADA);
+        ReservaVoo saved = reservaVooRepository.save(reserva);
+        return ResponseEntity.ok(saved);
     }
 
     private LocalDateTime parseDate(String value, String fieldName) {
@@ -76,7 +100,7 @@ public class ReservaVooController {
 
     private ReservaVoo.StatusReserva resolveStatus(String status) {
         if (status == null || status.isBlank()) {
-            return ReservaVoo.StatusReserva.PENDENTE;
+            return ReservaVoo.StatusReserva.CONFIRMADA;
         }
         try {
             return ReservaVoo.StatusReserva.valueOf(status.toUpperCase());
@@ -92,6 +116,7 @@ public class ReservaVooController {
     private static class ReservaVooRequest {
         private UsuarioRef usuario;
         private String usuarioId;
+        private String usuarioCpf;
         private String origem;
         private String destino;
         private String dataPartida;
@@ -100,12 +125,17 @@ public class ReservaVooController {
         private String companhiaAerea;
         private String status;
 
-        String resolveUsuarioId() {
+        String resolveUsuarioId(UsuarioRepository usuarioRepository) {
             if (usuarioId != null && !usuarioId.isBlank()) {
                 return usuarioId;
             }
             if (usuario != null && usuario.getId() != null && !usuario.getId().isBlank()) {
                 return usuario.getId();
+            }
+            if (usuarioCpf != null && !usuarioCpf.isBlank()) {
+                return usuarioRepository.findByCpf(usuarioCpf)
+                        .map(u -> u.getId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado para o CPF informado."));
             }
             return null;
         }

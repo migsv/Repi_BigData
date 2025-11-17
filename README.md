@@ -9,26 +9,23 @@ Repositório do projeto da aula de BigData | Ibmec
 
 Esta entrega implementa um **chatbot de reservas** (Bot Framework SDK em Python) integrado a um **backend** (Spring Boot + **Azure Cosmos DB**). Não há mais uso de PostgreSQL.
 
-O foco é permitir:
-
-- **Cadastrar Cliente** (Nome, Email, Telefone).
-- **Reservar Voo (Promoções)**: o bot exibe **3 ofertas**, o usuário escolhe uma, informa seu **ID** e a reserva é criada.
-- **Meus Dados**: consulta por **ID** e exibe dados do usuário e **todas as reservas de voo** dele.
-
-> O menu inicial é exibido automaticamente logo após a saudação.
+O foco é permitir que o usuário realize toda a jornada de reserva/consulta/cancelamento usando apenas o **CPF** como identificador principal.
+O bot aceita tanto comandos por menu quanto por linguagem natural (intents no Azure AI Language).
 
 ## 2. Funcionalidades Entregues
 
 - **Bot**
-  - Menu principal com **Cadastrar Cliente**, **Reservar Voo**, **Meus Dados** e **Ajuda**.
-  - **Cadastrar Cliente** → `POST /usuarios`.
-  - **Reservar Voo (Promoções)** → mostra 3 opções; após escolha e ID, envia `POST /reservas-voo`.
-  - **Meus Dados** → `GET /usuarios/{id}` e `GET /reservas-voo/usuario/{id}`.
-  - > Ao concluir o cadastro, o bot exibe um **ID completo (UUID)**. Guarde esse valor e cole-o sempre que for reservar voos ou consultar “Meus Dados”.
+  - Menu principal com **Cadastrar Cliente**, **Reservar/Consultar/Cancelar Voo**, **Reservar/Consultar/Cancelar Hotel**, **Ferramentas Dev** e **Ajuda**.
+  - Integração com **Conversational Language Understanding** (Azure AI Language). Intents suportadas: `ComprarVoo`, `ConsultarVoo`, `CancelarVoo`, `ReservarHotel`, `ConsultarHotel`, `CancelarHotel`.
+  - Todo fluxo pede o **CPF** do cliente; IDs internos ficam transparentes.
+  - Botão “Ferramentas Dev” lista, dentro do chat, todos os usuários e reservas existentes (voos e hotéis) – útil em testes.
+  - O cadastro exige CPF único (o bot alerta se já existir) e cada etapa usa mensagens e botões mais descritivos.
 
 - **Backend**
-  - **Usuários**: criação e consulta.
-  - **Reservas de Voo**: criação e listagem por usuário.
+  - **Usuários**: criação e consulta (por ID ou CPF) com validação de duplicidade.
+  - **Reservas de Voo**: criação, listagem geral, listagem por CPF e cancelamento.
+  - **Reservas de Hotel**: criação, listagem geral, listagem por CPF e cancelamento.
+  - “Seeder” (`DataSeeder`) popula automaticamente usuários e reservas de exemplo ao subir a API (caso esteja vazia).
   - Persistência em **Azure Cosmos DB** (configuração em `ChatBot-API/src/main/resources/application.properties`).
 
 ---

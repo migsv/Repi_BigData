@@ -78,7 +78,7 @@ CONVERSATION_STATE = ConversationState(MEMORY)
 USER_STATE = UserState(MEMORY)
 
 # Create the Bot
-DIALOG = MainDialog(USER_STATE)
+DIALOG = MainDialog(USER_STATE, CONVERSATION_STATE)
 BOT = MainBot(dialog=DIALOG, conversation_state=CONVERSATION_STATE, user_state=USER_STATE)
 
 # Listen for incoming requests on /api/messages

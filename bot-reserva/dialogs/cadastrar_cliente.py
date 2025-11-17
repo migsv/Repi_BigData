@@ -18,11 +18,13 @@ class CadastrarClienteDialog(ComponentDialog):
 
     async def prompt_cadastro_step(self, step_context: WaterfallStepContext):
         message = MessageFactory.text(
-            "Cadastro de Cliente\nInforme: Nome | Email | Telefone"
+            "Cadastro de Cliente\nInforme: Nome | Email | Telefone | CPF (somente números)"
         )
         prompt_option = PromptOptions(
             prompt=message,
-            retry_prompt=MessageFactory.text("Formato inválido. Ex.: Ana | ana@email.com | (11) 91234-5678")
+            retry_prompt=MessageFactory.text(
+                "Formato inválido. Ex.: Ana | ana@email.com | (11) 91234-5678 | 12345678900"
+            )
         )
         return await step_context.prompt(TextPrompt.__name__, prompt_option)
 
@@ -32,10 +34,11 @@ class CadastrarClienteDialog(ComponentDialog):
         nome = partes[0] if len(partes) > 0 else ""
         email = partes[1] if len(partes) > 1 else ""
         tel = partes[2] if len(partes) > 2 else ""
+        cpf = partes[3] if len(partes) > 3 else ""
 
-        if not (nome and email and tel):
+        if not (nome and email and tel and cpf):
             await step_context.context.send_activity(
-                MessageFactory.text("Formato inválido. Tente: Nome | Email | Telefone")
+                MessageFactory.text("Formato inválido. Tente: Nome | Email | Telefone | CPF")
             )
             return await step_context.end_dialog()
 
@@ -43,13 +46,13 @@ class CadastrarClienteDialog(ComponentDialog):
         # import tardio (evita qualquer ordem de import chata)
         from services.backend import create_user, BackendError
         try:
-            user = await create_user(nome, email, tel)
+            user = await create_user(nome, email, tel, cpf)
             msg = (
                 "Cliente cadastrado com sucesso!\n"
-                f"ID: {user.get('id')}\n"
                 f"Nome: {user.get('nome') or user.get('name')}\n"
                 f"Email: {user.get('email')}\n"
-                f"Telefone: {user.get('telefone') or user.get('phone')}"
+                f"Telefone: {user.get('telefone') or user.get('phone')}\n"
+                f"CPF: {user.get('cpf')}"
             )
             await step_context.context.send_activity(MessageFactory.text(msg))
         except BackendError as e:

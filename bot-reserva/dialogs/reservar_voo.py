@@ -4,62 +4,82 @@ from botbuilder.dialogs.prompts import PromptOptions, TextPrompt, ChoicePrompt
 from botbuilder.dialogs import WaterfallDialog, WaterfallStepContext
 from botbuilder.dialogs.choices import Choice
 
-# O objetivo inicial é criar apenas uma seção de voos com 3 promoções fixas para demonstrar a gravação em DB.
+from helpers.formatting import format_currency, format_datetime, format_status
+
 
 class ReservarVooDialog(ComponentDialog):
     def __init__(self, user_state: UserState):
         super(ReservarVooDialog, self).__init__("ReservarVooDialog")
         self.user_state = user_state
 
-        # Prompts
         self.add_dialog(ChoicePrompt("promoPrompt"))
-        self.add_dialog(TextPrompt("usuarioIdPrompt"))
+        self.add_dialog(TextPrompt("usuarioCpfPrompt"))
 
-        # Waterfall
         self.add_dialog(
             WaterfallDialog(
                 "ReservarVooDialog",
                 [
                     self.mostrar_promocoes_step,
                     self.pedir_usuario_step,
-                    self.criar_reserva_step
-                ]
+                    self.criar_reserva_step,
+                ],
             )
         )
         self.initial_dialog_id = "ReservarVooDialog"
 
-        # 3 promoções fixas (DEMO) – ajuste se quiser
         self.promos = [
             {
-                "label": "I) GOL - GRU → REC | 2025-12-15 09:30 | R$ 899,90",
+                "companhiaAerea": "GranAir",
+                "origem": "GRU",
+                "destino": "LIS",
+                "dataPartida": "2025-08-15T22:05:00",
+                "preco": "3599.90",
+                "descricao": "Inclui 1 bagagem despachada + acesso ao lounge GranClub.",
+            },
+            {
+                "companhiaAerea": "Latam",
+                "origem": "SDU",
+                "destino": "BSB",
+                "dataPartida": "2025-07-03T09:20:00",
+                "preco": "799.00",
+                "descricao": "Tarifa flexível + upgrade gratuito de assento.",
+            },
+            {
+                "companhiaAerea": "Azul",
+                "origem": "VCP",
+                "destino": "MIA",
+                "dataPartida": "2025-09-21T23:10:00",
+                "preco": "4299.00",
+                "descricao": "Voos diretos + 10% de cashback em pontos TudoAzul.",
+            },
+            {
                 "companhiaAerea": "GOL",
                 "origem": "GRU",
                 "destino": "REC",
-                "dataPartida": "2025-12-15T09:30:00",
-                "preco": "899,90",
+                "dataPartida": "2025-06-18T11:40:00",
+                "preco": "999.90",
+                "descricao": "Direto + franquia extra para equipamentos esportivos.",
             },
             {
-                "label": "II) AZUL - SDU → CNF | 2025-11-20 07:00 | R$ 499,00",
-                "companhiaAerea": "AZUL",
-                "origem": "SDU",
-                "destino": "CNF",
-                "dataPartida": "2025-11-20T07:00:00",
-                "preco": "499,00",
-            },
-            {
-                "label": "III) LATAM - GRU → POA | 2025-10-25 20:15 | R$ 399,90",
-                "companhiaAerea": "LATAM",
-                "origem": "GRU",
-                "destino": "POA",
-                "dataPartida": "2025-10-25T20:15:00",
-                "preco": "399,90",
+                "companhiaAerea": "Tap",
+                "origem": "GIG",
+                "destino": "BCN",
+                "dataPartida": "2025-10-02T18:55:00",
+                "preco": "3890.00",
+                "descricao": "Stopover gratuito em Lisboa e traslado incluído.",
             },
         ]
 
     async def mostrar_promocoes_step(self, step_context: WaterfallStepContext):
-        texto = "Promoções de Voo (escolha uma opção ou 'Voltar ao Menu'):\n\n"
-        for p in self.promos:
-            texto += f"- {p['label']}\n"
+        linhas = ["🔥 Voos promocionais GranVoyage:", ""]
+        for idx, promo in enumerate(self.promos, start=1):
+            linhas.append(
+                f"{idx}) {promo['companhiaAerea']} | {promo['origem']} → {promo['destino']} | "
+                f"{format_datetime(promo['dataPartida'])} | {format_currency(promo['preco'])}"
+            )
+            linhas.append(f"   {promo['descricao']}")
+        linhas.append("\nEscolha uma das opções para confirmar imediatamente.")
+        texto = "\n".join(linhas)
         return await step_context.prompt(
             "promoPrompt",
             PromptOptions(
@@ -68,10 +88,14 @@ class ReservarVooDialog(ComponentDialog):
                     Choice("Opção 1"),
                     Choice("Opção 2"),
                     Choice("Opção 3"),
+                    Choice("Opção 4"),
+                    Choice("Opção 5"),
                     Choice("Voltar ao Menu"),
                 ],
-                retry_prompt=MessageFactory.text("Escolha: Opção 1, Opção 2, Opção 3 ou Voltar ao Menu.")
-            )
+                retry_prompt=MessageFactory.text(
+                    "Por favor, escolha entre Opção 1 a 5 ou Voltar ao Menu."
+                ),
+            ),
         )
 
     async def pedir_usuario_step(self, step_context: WaterfallStepContext):
@@ -83,8 +107,13 @@ class ReservarVooDialog(ComponentDialog):
             )
             return await step_context.end_dialog()
 
-        # Mapear escolha -> índice
-        idx = {"Opção 1": 0, "Opção 2": 1, "Opção 3": 2}.get(escolha)
+        idx = {
+            "Opção 1": 0,
+            "Opção 2": 1,
+            "Opção 3": 2,
+            "Opção 4": 3,
+            "Opção 5": 4,
+        }.get(escolha)
         if idx is None:
             await step_context.context.send_activity(
                 MessageFactory.text("Opção inválida.")
@@ -94,20 +123,19 @@ class ReservarVooDialog(ComponentDialog):
         step_context.values["vooSelecionado"] = self.promos[idx]
 
         return await step_context.prompt(
-            "usuarioIdPrompt",
+            "usuarioCpfPrompt",
             PromptOptions(
                 prompt=MessageFactory.text(
-                    "Informe seu ID de usuário para confirmar a reserva.\n"
-                    "Use o ID completo exibido após o cadastro (ex.: 63bef74d-1b52-4959-9b4a-2bfb312fad24)."
+                    "Informe o CPF do titular da reserva (somente números)."
                 )
             )
         )
 
     async def criar_reserva_step(self, step_context: WaterfallStepContext):
-        usuario_id = str(step_context.result or "").strip()
-        if not usuario_id:
+        usuario_cpf = "".join(filter(str.isdigit, str(step_context.result or "")))
+        if not usuario_cpf:
             await step_context.context.send_activity(
-                MessageFactory.text("ID inválido. Operação cancelada.")
+                MessageFactory.text("CPF inválido. Operação cancelada.")
             )
             return await step_context.end_dialog()
 
@@ -121,27 +149,25 @@ class ReservarVooDialog(ComponentDialog):
         from services.backend import create_reserva_voo, BackendError
         try:
             reserva = await create_reserva_voo(
-                usuario_id=usuario_id,
+                usuario_cpf=usuario_cpf,
                 origem=voo["origem"],
                 destino=voo["destino"],
                 data_partida=voo["dataPartida"],
                 preco_str=voo["preco"],
                 companhia_aerea=voo.get("companhiaAerea"),
                 data_retorno=None,
-                status="PENDENTE",
+                status="CONFIRMADA",
             )
 
             usuario_id_ret = reserva.get("usuarioId") or (reserva.get("usuario") or {}).get("id")
             msg = (
-                "Reserva criada com sucesso!\n"
-                f"ID: {reserva.get('id')}\n"
-                f"Usuário: {usuario_id_ret}\n"
-                f"Companhia: {reserva.get('companhiaAerea')}\n"
-                f"Origem: {reserva.get('origem')}\n"
-                f"Destino: {reserva.get('destino')}\n"
-                f"Partida: {reserva.get('dataPartida')}\n"
-                f"Preço: {reserva.get('preco')}\n"
-                f"Status: {reserva.get('status')}"
+                "✈️ Reserva confirmada!\n"
+                f"Código: {reserva.get('id')}\n"
+                f"Cliente: {usuario_id_ret or 'novo cadastro'}\n"
+                f"Voo: {reserva.get('origem')} → {reserva.get('destino')} ({reserva.get('companhiaAerea')})\n"
+                f"Partida: {format_datetime(reserva.get('dataPartida'))}\n"
+                f"Tarifa: {format_currency(reserva.get('preco'))}\n"
+                f"Status: {format_status(reserva.get('status'))}"
             )
             await step_context.context.send_activity(MessageFactory.text(msg))
         except BackendError as e:
